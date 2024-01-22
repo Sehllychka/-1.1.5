@@ -49,8 +49,9 @@ public class UserDaoHibernateImpl implements UserDao {
     }
 
     public void saveUser(String name, String lastName, byte age) {
+        Transaction transaction = null;
         try (Session session = sessionFactory.openSession()) {
-            Transaction transaction = session.beginTransaction();
+            transaction = session.beginTransaction();
             User user = new User();
             user.setName(name);
             user.setLastName(lastName);
@@ -59,20 +60,23 @@ public class UserDaoHibernateImpl implements UserDao {
             transaction.commit();
             System.out.printf("User %s was added%n", name);
         } catch (Exception e) {
+            if (transaction != null) transaction.rollback();
             e.getStackTrace();
         }
     }
 
     public void removeUserById(long id) {
+        Transaction transaction = null;
         String remove = "DELETE FROM users WHERE id = ?";
         try (Session session = sessionFactory.openSession()) {
-            Transaction transaction = session.beginTransaction();
+            transaction = session.beginTransaction();
             User user = session.get(User.class, id);
             if (user != null) {
                 session.remove(user);
             }
             transaction.commit();
         } catch (Exception e) {
+            if (transaction != null) transaction.rollback();
             e.getStackTrace();
         }
     }
@@ -90,12 +94,14 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void cleanUsersTable() {
+        Transaction transaction = null;
         String clean = "DELETE from User";
         try (Session session = sessionFactory.openSession()) {
-            Transaction transaction = session.beginTransaction();
+            transaction = session.beginTransaction();
             session.createQuery(clean).executeUpdate();
             transaction.commit();
         } catch (Exception e) {
+            if (transaction != null) transaction.rollback();
             e.getStackTrace();
         }
     }
